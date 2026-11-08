@@ -713,22 +713,24 @@ document.getElementById("submitReleaseBtn").addEventListener("click", async () =
   button.disabled = false;
 });
 
+
 // LOAD ARTIST RELEASES
 async function loadMyReleases() {
   const container = document.getElementById("myReleases");
 
   container.textContent = "Loading your releases...";
 
-  const { data: userData } = await sbnfSupabase.auth.getUser();
+  const { data: userData, error: userError } =
+    await sbnfSupabase.auth.getUser();
 
-  if (!userData.user) {
+  if (userError || !userData.user) {
     container.textContent = "Please log in to view your releases.";
     return;
   }
 
   const { data: releases, error } = await sbnfSupabase
     .from("release_submissions")
-    .select("track_title, genre, release_type, release_date, status, created_at")
+    .select("track_title, genre, release_type, release_date, status, admin_note, created_at")
     .eq("artist_id", userData.user.id)
     .order("created_at", { ascending: false });
 
@@ -760,11 +762,24 @@ async function loadMyReleases() {
       "Genre: " + (release.genre || "Not specified") +
       " | Type: " + release.release_type;
 
+    const date = document.createElement("p");
+    date.style.color = "#ccc";
+    date.textContent =
+      "Submitted: " + new Date(release.created_at).toLocaleDateString();
+
     const status = document.createElement("p");
     status.style.color = "#e2bd6c";
     status.textContent = "Status: " + release.status.toUpperCase();
 
-    card.append(title, details, status);
+    const feedback = document.createElement("p");
+    feedback.style.cssText =
+      "color:#fff;background:#252525;padding:10px;border-radius:6px;";
+
+    feedback.textContent = release.admin_note
+      ? "ADMIN FEEDBACK: " + release.admin_note
+      : "ADMIN FEEDBACK: No review note yet.";
+
+    card.append(title, details, date, status, feedback);
     container.appendChild(card);
   });
 }
