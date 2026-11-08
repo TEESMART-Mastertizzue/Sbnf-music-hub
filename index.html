@@ -505,8 +505,10 @@ Track the progress of your music submissions here.
       : "Registration received! Check your email to confirm your account.";
   });
 
+
+
   // ARTIST LOGIN
-  document.getElementById("loginBtn").addEventListener("click", async () => {
+document.getElementById("loginBtn").addEventListener("click", async () => {
     const email = document.getElementById("loginEmail").value.trim();
 const password = document.getElementById("loginPassword").value;
     const message = document.getElementById("authMessage");
@@ -836,40 +838,7 @@ async function loadMyReleases() {
   }
 }
 
-    // DISPLAY RELEASE ARTWORK
-    if (release.artwork_file_path) {
-      const { data, error } = await sbnfSupabase.storage
-        .from("release-files")
-        .createSignedUrl(release.artwork_file_path, 600);
-
-      if (!error && data?.signedUrl) {
-        const artwork = document.createElement("img");
-        artwork.src = data.signedUrl;
-        artwork.alt = release.track_title + " artwork";
-        artwork.style.cssText =
-          "display:block;width:180px;max-width:100%;height:auto;margin:12px 0;border-radius:8px;";
-
-        card.appendChild(artwork);
-      } else {
-        const artworkError = document.createElement("p");
-        artworkError.textContent = "Artwork preview is temporarily unavailable.";
-        artworkError.style.color = "#ccc";
-        card.appendChild(artworkError);
-      }
-    }
-
-    const feedback = document.createElement("p");
-    feedback.style.cssText =
-      "color:#fff;background:#252525;padding:10px;border-radius:6px;";
-
-    feedback.textContent = release.admin_note
-      ? "ADMIN FEEDBACK: " + release.admin_note
-      : "ADMIN FEEDBACK: No review note yet.";
-
-    card.append(details, date, status, feedback);
-    container.appendChild(card);
-  }
-}
+   
 
 // LOAD ALL RELEASES FOR ADMIN
 async function loadAdminReleases() {
