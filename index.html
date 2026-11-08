@@ -859,37 +859,48 @@ async function loadAdminReleases() {
       }
     }
 
-    // APPROVE OR REJECT
-    ["approved", "rejected"].forEach((newStatus) => {
-      const button = document.createElement("button");
-      button.textContent = newStatus.toUpperCase();
-      button.style.cssText =
-        "padding:10px;margin:5px;background:#d6ad55;color:#111;border:0;border-radius:5px;";
+// ADMIN REVIEW AND FEEDBACK
+const reviewNote = document.createElement("textarea");
 
-      button.addEventListener("click", async () => {
-        button.disabled = true;
+reviewNote.value = release.admin_note || "";
+reviewNote.placeholder = "Write feedback for this artist...";
+reviewNote.style.cssText =
+  "display:block;width:100%;min-height:80px;padding:10px;margin:12px 0;background:#222;color:white;border:1px solid #d6ad55;border-radius:6px;";
 
-        const { error } = await sbnfSupabase.rpc(
-  "admin_update_release_status",
-  {
-    release_id: release.id,
-    new_status: newStatus
-  }
-);
+card.appendChild(reviewNote);
 
-        if (error) {
-          alert("Update failed: " + error.message);
-          button.disabled = false;
-          return;
-        }
+["approved", "rejected"].forEach((newStatus) => {
+  const button = document.createElement("button");
 
-        await loadAdminReleases();
-      });
+  button.textContent = newStatus.toUpperCase();
+  button.style.cssText =
+    "padding:10px;margin:5px;background:#d6ad55;color:#111;border:0;border-radius:5px;";
 
-      card.appendChild(button);
-    });
+  button.addEventListener("click", async () => {
+    button.disabled = true;
 
-    container.appendChild(card);
+    const { error } = await sbnfSupabase.rpc(
+      "admin_review_release",
+      {
+        release_id: release.id,
+        new_status: newStatus,
+        review_note: reviewNote.value
+      }
+    );
+
+    if (error) {
+      alert("Review failed: " + error.message);
+      button.disabled = false;
+      return;
+    }
+
+    await loadAdminReleases();
+  });
+
+  card.appendChild(button);
+});
+
+  
   }
 }
 
