@@ -477,7 +477,59 @@ document.getElementById("dashboardStageName").textContent =
 document.getElementById("profileEmail").textContent =
   "Email: " + data.user.email;
   });
-("SBNF MUSIC HUB connected to Supabase!");
+// SBNF NEW RELEASE SUBMISSION
+document.getElementById("submitReleaseBtn").addEventListener("click", async () => {
+
+  const title = document.getElementById("trackTitle").value.trim();
+  const genre = document.getElementById("trackGenre").value.trim();
+  const releaseType = document.getElementById("releaseType").value;
+  const releaseDate = document.getElementById("releaseDate").value;
+  const description = document.getElementById("releaseDescription").value.trim();
+  const message = document.getElementById("releaseMessage");
+  const button = document.getElementById("submitReleaseBtn");
+
+  if (!title) {
+    message.textContent = "Please enter your song title.";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "Submitting your release...";
+
+  const { data: userData } = await sbnfSupabase.auth.getUser();
+
+  if (!userData.user) {
+    message.textContent = "Please log in before submitting.";
+    button.disabled = false;
+    return;
+  }
+
+  const { error } = await sbnfSupabase
+    .from("release_submissions")
+    .insert({
+      artist_id: userData.user.id,
+      track_title: title,
+      genre: genre || null,
+      release_type: releaseType,
+      release_date: releaseDate || null,
+      description: description || null
+    });
+
+  button.disabled = false;
+
+  if (error) {
+    message.textContent = "Submission failed: " + error.message;
+    return;
+  }
+
+  message.textContent = "Success! Your release has been submitted for review.";
+
+  document.getElementById("trackTitle").value = "";
+  document.getElementById("trackGenre").value = "";
+  document.getElementById("releaseDate").value = "";
+  document.getElementById("releaseDescription").value = "";
+});
+
 </script>
 
 </body>
