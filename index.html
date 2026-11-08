@@ -543,6 +543,62 @@ document.getElementById("submitReleaseBtn").addEventListener("click", async () =
   document.getElementById("releaseDescription").value = "";
 });
 
+// LOAD ARTIST RELEASES
+async function loadMyReleases() {
+  const container = document.getElementById("myReleases");
+
+  container.textContent = "Loading your releases...";
+
+  const { data: userData } = await sbnfSupabase.auth.getUser();
+
+  if (!userData.user) {
+    container.textContent = "Please log in to view your releases.";
+    return;
+  }
+
+  const { data: releases, error } = await sbnfSupabase
+    .from("release_submissions")
+    .select("track_title, genre, release_type, release_date, status, created_at")
+    .eq("artist_id", userData.user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    container.textContent = "Could not load releases: " + error.message;
+    return;
+  }
+
+  container.replaceChildren();
+
+  if (!releases || releases.length === 0) {
+    container.textContent = "You have not submitted any releases yet.";
+    return;
+  }
+
+  releases.forEach((release) => {
+    const card = document.createElement("div");
+
+    card.style.cssText =
+      "background:#171717;border:1px solid #d6ad55;border-radius:10px;padding:15px;margin:12px 0;";
+
+    const title = document.createElement("h4");
+    title.textContent = release.track_title;
+    title.style.color = "#e2bd6c";
+
+    const details = document.createElement("p");
+    details.style.color = "#ccc";
+    details.textContent =
+      "Genre: " + (release.genre || "Not specified") +
+      " | Type: " + release.release_type;
+
+    const status = document.createElement("p");
+    status.style.color = "#e2bd6c";
+    status.textContent = "Status: " + release.status.toUpperCase();
+
+    card.append(title, details, status);
+    container.appendChild(card);
+  });
+}
+
 </script>
 
 </body>
