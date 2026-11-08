@@ -772,12 +772,11 @@ async function loadMyReleases() {
 // LOAD ALL RELEASES FOR ADMIN
 async function loadAdminReleases() {
   const container = document.getElementById("adminReleases");
-
   container.textContent = "Loading all artist submissions...";
 
   const { data: releases, error } = await sbnfSupabase
     .from("release_submissions")
-    .select("id, artist_id, track_title, genre, release_type, status")
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -792,7 +791,7 @@ async function loadAdminReleases() {
     return;
   }
 
-  releases.forEach((release) => {
+  for (const release of releases) {
     const card = document.createElement("div");
 
     card.style.cssText =
@@ -806,8 +805,7 @@ async function loadAdminReleases() {
     details.style.color = "#ccc";
     details.textContent =
       "Genre: " + (release.genre || "Not specified") +
-      " | Type: " + release.release_type +
-      " | Artist ID: " + release.artist_id;
+      " | Type: " + release.release_type;
 
     const status = document.createElement("p");
     status.style.color = "#e2bd6c";
@@ -815,9 +813,55 @@ async function loadAdminReleases() {
 
     card.append(title, details, status);
 
+    // SECURE AUDIO ACCESS
+    if (release.audio_file_path) {
+      const { data, error } = await sbnfSupabase.storage
+        .from("release-files")
+        .createSignedUrl(release.audio_file_path, 600);
+
+      if (!error && data?.signedUrl) {
+        const audio = document.createElement("audio");
+        audio.controls = true;
+        audio.src = data.signedUrl;
+        audio.style.width = "100%";
+        card.appendChild(audio);
+
+        const audioLink = document.createElement("a");
+        audioLink.href = data.signedUrl;
+        audioLink.textContent = "Download Audio";
+        audioLink.target = "_blank";
+        audioLink.rel = "noopener noreferrer";
+        card.appendChild(audioLink);
+      }
+    }
+
+    // SECURE ARTWORK ACCESS
+    if (release.artwork_file_path) {
+      const { data, error } = await sbnfSupabase.storage
+        .from("release-files")
+        .createSignedUrl(release.artwork_file_path, 600);
+
+      if (!error && data?.signedUrl) {
+        const artwork = document.createElement("img");
+        artwork.src = data.signedUrl;
+        artwork.alt = "Release artwork";
+        artwork.style.cssText =
+          "display:block;width:150px;max-width:100%;margin:12px 0;border-radius:8px;";
+
+        card.appendChild(artwork);
+
+        const artworkLink = document.createElement("a");
+        artworkLink.href = data.signedUrl;
+        artworkLink.textContent = "Download Artwork";
+        artworkLink.target = "_blank";
+        artworkLink.rel = "noopener noreferrer";
+        card.appendChild(artworkLink);
+      }
+    }
+
+    // APPROVE OR REJECT
     ["approved", "rejected"].forEach((newStatus) => {
       const button = document.createElement("button");
-
       button.textContent = newStatus.toUpperCase();
       button.style.cssText =
         "padding:10px;margin:5px;background:#d6ad55;color:#111;border:0;border-radius:5px;";
@@ -843,7 +887,7 @@ async function loadAdminReleases() {
     });
 
     container.appendChild(card);
-  });
+  }
 }
 
 </script>
