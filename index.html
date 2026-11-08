@@ -730,7 +730,7 @@ async function loadMyReleases() {
 
   const { data: releases, error } = await sbnfSupabase
     .from("release_submissions")
-    .select("track_title, genre, release_type, release_date, status, admin_note, created_at, artwork_file_path")
+    .select("track_title, genre, release_type, release_date, status, admin_note, created_at, artwork_file_path, audio_file_path")
     .eq("artist_id", userData.user.id)
     .order("created_at", { ascending: false });
 
@@ -756,6 +756,26 @@ async function loadMyReleases() {
     title.textContent = release.track_title;
     title.style.color = "#e2bd6c";
 
+    card.appendChild(title);
+
+    // DISPLAY RELEASE ARTWORK
+    if (release.artwork_file_path) {
+      const { data, error } = await sbnfSupabase.storage
+        .from("release-files")
+        .createSignedUrl(release.artwork_file_path, 600);
+
+      if (!error && data?.signedUrl) {
+        const artwork = document.createElement("img");
+        artwork.src = data.signedUrl;
+        artwork.alt = release.track_title + " artwork";
+        artwork.style.cssText =
+          "display:block;width:180px;max-width:100%;height:auto;margin:12px 0;border-radius:8px;";
+
+        card.appendChild(artwork);
+      }
+    }
+
+    // RELEASE DETAILS
     const details = document.createElement("p");
     details.style.color = "#ccc";
     details.textContent =
@@ -771,7 +791,50 @@ async function loadMyReleases() {
     status.style.color = "#e2bd6c";
     status.textContent = "Status: " + release.status.toUpperCase();
 
-    card.append(title);
+    card.append(details, date, status);
+
+    // PRIVATE AUDIO PLAYER
+    if (release.audio_file_path) {
+      const audioHeading = document.createElement("p");
+      audioHeading.textContent = "YOUR SONG PREVIEW";
+      audioHeading.style.color = "#e2bd6c";
+
+      const { data, error } = await sbnfSupabase.storage
+        .from("release-files")
+        .createSignedUrl(release.audio_file_path, 600);
+
+      card.appendChild(audioHeading);
+
+      if (!error && data?.signedUrl) {
+        const audio = document.createElement("audio");
+        audio.controls = true;
+        audio.preload = "none";
+        audio.src = data.signedUrl;
+        audio.style.width = "100%";
+
+        card.appendChild(audio);
+      } else {
+        const audioMessage = document.createElement("p");
+        audioMessage.textContent = "Audio preview is temporarily unavailable.";
+        audioMessage.style.color = "#ccc";
+        card.appendChild(audioMessage);
+      }
+    }
+
+    // ADMIN FEEDBACK
+    const feedback = document.createElement("p");
+    feedback.style.cssText =
+      "color:#fff;background:#252525;padding:10px;border-radius:6px;";
+
+    feedback.textContent = release.admin_note
+      ? "ADMIN FEEDBACK: " + release.admin_note
+      : "ADMIN FEEDBACK: No review note yet.";
+
+    card.appendChild(feedback);
+
+    container.appendChild(card);
+  }
+}
 
     // DISPLAY RELEASE ARTWORK
     if (release.artwork_file_path) {
