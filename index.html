@@ -516,6 +516,17 @@ message.textContent = "Welcome back! You are successfully signed in.";
 document.getElementById("artistDashboard").style.display = "block";
 await loadMyReleases();
 
+// CHECK ADMIN ACCESS
+const { data: roleData, error: roleError } = await sbnfSupabase
+  .from("user_roles")
+  .select("role")
+  .eq("user_id", data.user.id)
+  .maybeSingle();
+
+if (!roleError && roleData?.role === "admin") {
+  document.getElementById("adminDashboard").style.display = "block";
+}
+
 const { data: profile, error: profileError } = await sbnfSupabase
   .from("artist_profiles")
   .select("stage_name")
