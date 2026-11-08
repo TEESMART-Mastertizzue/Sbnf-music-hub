@@ -410,9 +410,27 @@ const password = document.getElementById("loginPassword").value;
 
     button.disabled = false;
 
-    message.textContent = error
-      ? error.message
-      : "Welcome back! You are successfully signed in.";
+    
+if (error) {
+  message.textContent = error.message;
+  return;
+}
+
+message.textContent = "Welcome back! You are successfully signed in.";
+
+document.getElementById("artistDashboard").style.display = "block";
+
+const { data: profile, error: profileError } = await sbnfSupabase
+  .from("artist_profiles")
+  .select("stage_name")
+  .eq("id", data.user.id)
+  .single();
+
+document.getElementById("dashboardStageName").textContent =
+  profile?.stage_name || "Artist";
+
+document.getElementById("profileEmail").textContent =
+  "Email: " + data.user.email;
   });
 ("SBNF MUSIC HUB connected to Supabase!");
 </script>
