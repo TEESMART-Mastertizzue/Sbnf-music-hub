@@ -648,6 +648,83 @@ async function loadMyReleases() {
   });
 }
 
+// LOAD ALL RELEASES FOR ADMIN
+async function loadAdminReleases() {
+  const container = document.getElementById("adminReleases");
+
+  container.textContent = "Loading all artist submissions...";
+
+  const { data: releases, error } = await sbnfSupabase
+    .from("release_submissions")
+    .select("id, artist_id, track_title, genre, release_type, status")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    container.textContent = "Could not load submissions: " + error.message;
+    return;
+  }
+
+  container.replaceChildren();
+
+  if (!releases || releases.length === 0) {
+    container.textContent = "No release submissions yet.";
+    return;
+  }
+
+  releases.forEach((release) => {
+    const card = document.createElement("div");
+
+    card.style.cssText =
+      "background:#171717;border:1px solid #d6ad55;border-radius:10px;padding:15px;margin:12px 0;";
+
+    const title = document.createElement("h4");
+    title.textContent = release.track_title;
+    title.style.color = "#e2bd6c";
+
+    const details = document.createElement("p");
+    details.style.color = "#ccc";
+    details.textContent =
+      "Genre: " + (release.genre || "Not specified") +
+      " | Type: " + release.release_type +
+      " | Artist ID: " + release.artist_id;
+
+    const status = document.createElement("p");
+    status.style.color = "#e2bd6c";
+    status.textContent = "Status: " + release.status.toUpperCase();
+
+    card.append(title, details, status);
+
+    ["approved", "rejected"].forEach((newStatus) => {
+      const button = document.createElement("button");
+
+      button.textContent = newStatus.toUpperCase();
+      button.style.cssText =
+        "padding:10px;margin:5px;background:#d6ad55;color:#111;border:0;border-radius:5px;";
+
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+
+        const { error } = await sbnfSupabase
+          .from("release_submissions")
+          .update({ status: newStatus })
+          .eq("id", release.id);
+
+        if (error) {
+          alert("Update failed: " + error.message);
+          button.disabled = false;
+          return;
+        }
+
+        await loadAdminReleases();
+      });
+
+      card.appendChild(button);
+    });
+
+    container.appendChild(card);
+  });
+}
+
 </script>
 
 </body>
