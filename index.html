@@ -572,6 +572,10 @@ document.getElementById("submitReleaseBtn").addEventListener("click", async () =
   const releaseType = document.getElementById("releaseType").value;
   const releaseDate = document.getElementById("releaseDate").value;
   const description = document.getElementById("releaseDescription").value.trim();
+
+  const audioFile = document.getElementById("audioFile").files[0];
+  const artworkFile = document.getElementById("artworkFile").files[0];
+
   const message = document.getElementById("releaseMessage");
   const button = document.getElementById("submitReleaseBtn");
 
@@ -580,41 +584,133 @@ document.getElementById("submitReleaseBtn").addEventListener("click", async () =
     return;
   }
 
-  button.disabled = true;
-  message.textContent = "Submitting your release...";
+  // CHECK AUDIO FILE
+  if (audioFile) {
+    const audioExt = audioFile.name.split(".").pop().toLowerCase();
 
-  const { data: userData } = await sbnfSupabase.auth.getUser();
+    if (!["mp3", "wav"].includes(audioExt)) {
+      message.textContent = "Audio must be MP3 or WAV.";
+      return;
+    }
 
-  if (!userData.user) {
-    message.textContent = "Please log in before submitting.";
-    button.disabled = false;
-    return;
+    if (audioFile.size > 50 * 1024 * 1024) {
+      message.textContent = "Audio file must not exceed 50MB.";
+      return;
+    }
   }
 
-  const { error } = await sbnfSupabase
-    .from("release_submissions")
-    .insert({
-      artist_id: userData.user.id,
-      track_title: title,
-      genre: genre || null,
-      release_type: releaseType,
-      release_date: releaseDate || null,
-      description: description || null
-    });
+  // CHECK ARTWORK FILE
+  if (artworkFile) {
+    const imageExt = artworkFile.name.split(".").pop().toLowerCase();
+
+    if (!["jpg", "jpeg", "png", "webp"].includes(imageExt)) {
+      message.textContent = "Artwork must be JPG, PNG or WEBP.";
+      return;
+    }
+
+    if (artworkFile.size > 5 * 1024 * 1024) {
+      message.textContent = "Artwork must not exceed 5MB.";
+      return;
+    }
+  }
+
+  button.disabled = true;
+  message.textContent = "Preparing your release...";
+
+  try {
+    const { data: userData, error: userError } =
+      await sbnfSupabase.auth.getUser();
+
+    if (userError || !userData.user) {
+      throw new Error("Please log in before submitting.");
+    }
+
+    const userId = userData.user.id;
+
+    // CREATE RELEASE RECORD
+    const { data: release, error: insertError } =
+      await sbnfSupabase
+        .from("release_submissions")
+        .insert({
+          artist_id: userId,
+          track_title: title,
+          genre: genre || null,
+          release_type: releaseType,
+          release_date: releaseDate || null,
+          description: description || null
+        })
+        .select("id")
+        .single();
+
+    if (insertError) throw insertError;
+
+    const releaseId = release.id;
+    let audioPath = null;
+    let artworkPath = null;
+
+    // UPLOAD AUDIO
+    if (audioFile) {
+      message.textContent = "Uploading your audio...";
+
+      const extension = audioFile.name.split(".").pop().toLowerCase();
+      audioPath = `${userId}/${releaseId}/audio.${extension}`;
+
+      const { error: audioError } = await sbnfSupabase.storage
+        .from("release-files")
+        .upload(audioPath, audioFile, {
+          upsert: false,
+          contentType: audioFile.type || "application/octet-stream"
+        });
+
+      if (audioError) throw audioError;
+    }
+
+    // UPLOAD ARTWORK
+    if (artworkFile) {
+      message.textContent = "Uploading your artwork...";
+
+      const extension = artworkFile.name.split(".").pop().toLowerCase();
+      artworkPath = `${userId}/${releaseId}/artwork.${extension}`;
+
+      const { error: artworkError } = await sbnfSupabase.storage
+        .from("release-files")
+        .upload(artworkPath, artworkFile, {
+          upsert: false,
+          contentType: artworkFile.type || "image/jpeg"
+        });
+
+      if (artworkError) throw artworkError;
+    }
+
+    // SAVE FILE PATHS
+    const { error: updateError } = await sbnfSupabase
+      .from("release_submissions")
+      .update({
+        audio_file_path: audioPath,
+        artwork_file_path: artworkPath
+      })
+      .eq("id", releaseId)
+      .eq("artist_id", userId);
+
+    if (updateError) throw updateError;
+
+    message.textContent =
+      "Success! Your release and selected files have been submitted for review.";
+
+    document.getElementById("trackTitle").value = "";
+    document.getElementById("trackGenre").value = "";
+    document.getElementById("releaseDate").value = "";
+    document.getElementById("releaseDescription").value = "";
+    document.getElementById("audioFile").value = "";
+    document.getElementById("artworkFile").value = "";
+
+    await loadMyReleases();
+
+  } catch (error) {
+    message.textContent = "Submission issue: " + error.message;
+  }
 
   button.disabled = false;
-
-  if (error) {
-    message.textContent = "Submission failed: " + error.message;
-    return;
-  }
-
-  message.textContent = "Success! Your release has been submitted for review.";
-
-  document.getElementById("trackTitle").value = "";
-  document.getElementById("trackGenre").value = "";
-  document.getElementById("releaseDate").value = "";
-  document.getElementById("releaseDescription").value = "";
 });
 
 // LOAD ARTIST RELEASES
