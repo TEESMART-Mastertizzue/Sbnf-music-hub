@@ -477,6 +477,7 @@ if (error) {
 message.textContent = "Welcome back! You are successfully signed in.";
 
 document.getElementById("artistDashboard").style.display = "block";
+await loadMyReleases();
 
 const { data: profile, error: profileError } = await sbnfSupabase
   .from("artist_profiles")
