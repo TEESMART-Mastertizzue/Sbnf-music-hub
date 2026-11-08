@@ -869,10 +869,13 @@ async function loadAdminReleases() {
       button.addEventListener("click", async () => {
         button.disabled = true;
 
-        const { error } = await sbnfSupabase
-          .from("release_submissions")
-          .update({ status: newStatus })
-          .eq("id", release.id);
+        const { error } = await sbnfSupabase.rpc(
+  "admin_update_release_status",
+  {
+    release_id: release.id,
+    new_status: newStatus
+  }
+);
 
         if (error) {
           alert("Update failed: " + error.message);
