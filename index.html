@@ -525,6 +525,8 @@ const { data: roleData, error: roleError } = await sbnfSupabase
 
 if (!roleError && roleData?.role === "admin") {
   document.getElementById("adminDashboard").style.display = "block";
+
+  await loadAdminReleases();
 }
 
 const { data: profile, error: profileError } = await sbnfSupabase
