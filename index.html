@@ -350,6 +350,28 @@ Enter your music details below for SBNF review.
     style="width:100%;padding:12px;margin:8px 0 15px;min-height:90px;">
   </textarea>
 
+<label style="color:#e2bd6c;">
+  Upload Song (MP3 or WAV)
+</label>
+
+<input
+  id="audioFile"
+  type="file"
+  accept=".mp3,.wav,audio/mpeg,audio/wav"
+  style="width:100%;padding:12px;margin:8px 0 15px;color:white;"
+>
+
+<label style="color:#e2bd6c;">
+  Upload Cover Artwork
+</label>
+
+<input
+  id="artworkFile"
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  style="width:100%;padding:12px;margin:8px 0 15px;color:white;"
+>
+
   <button id="submitReleaseBtn"
     style="width:100%;padding:14px;background:#d6ad55;color:#111;border:0;border-radius:6px;font-weight:bold;">
     SUBMIT RELEASE
@@ -541,6 +563,7 @@ document.getElementById("dashboardStageName").textContent =
 document.getElementById("profileEmail").textContent =
   "Email: " + data.user.email;
   });
+
 // SBNF NEW RELEASE SUBMISSION
 document.getElementById("submitReleaseBtn").addEventListener("click", async () => {
 
