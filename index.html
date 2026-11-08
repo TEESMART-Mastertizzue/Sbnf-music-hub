@@ -312,6 +312,52 @@
       Your music submission workspace is coming next.
     </p>
 
+<hr style="border-color:#444;margin:25px 0;">
+
+<h3 style="color:#e2bd6c;">SUBMIT NEW RELEASE</h3>
+
+<p style="color:#ccc;">
+Enter your music details below for SBNF review.
+</p>
+
+<div style="margin-top:15px;">
+
+  <label style="color:#e2bd6c;">Song Title</label>
+  <input id="trackTitle" type="text"
+    placeholder="Enter your song title"
+    style="width:100%;padding:12px;margin:8px 0 15px;">
+
+  <label style="color:#e2bd6c;">Genre</label>
+  <input id="trackGenre" type="text"
+    placeholder="e.g. Afropop, Amapiano, Afrobeat"
+    style="width:100%;padding:12px;margin:8px 0 15px;">
+
+  <label style="color:#e2bd6c;">Release Type</label>
+  <select id="releaseType"
+    style="width:100%;padding:12px;margin:8px 0 15px;">
+    <option value="Single">Single</option>
+    <option value="EP">EP</option>
+    <option value="Album">Album</option>
+  </select>
+
+  <label style="color:#e2bd6c;">Planned Release Date</label>
+  <input id="releaseDate" type="date"
+    style="width:100%;padding:12px;margin:8px 0 15px;">
+
+  <label style="color:#e2bd6c;">Additional Information</label>
+  <textarea id="releaseDescription"
+    placeholder="Tell us anything important about this release"
+    style="width:100%;padding:12px;margin:8px 0 15px;min-height:90px;">
+  </textarea>
+
+  <button id="submitReleaseBtn"
+    style="width:100%;padding:14px;background:#d6ad55;color:#111;border:0;border-radius:6px;font-weight:bold;">
+    SUBMIT RELEASE
+  </button>
+
+  <p id="releaseMessage" style="color:#e2bd6c;"></p>
+
+</div>
   </div>
 </section>
 <!-- END SBNF ARTIST DASHBOARD -->
