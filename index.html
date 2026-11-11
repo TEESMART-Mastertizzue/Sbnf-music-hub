@@ -1054,6 +1054,22 @@ async function loadArtistProfile() {
 
   document.getElementById("profileGenre").value =
     profile.genre || "";
+const preview = document.getElementById("profilePicturePreview");
+
+if (profile.avatar_path) {
+  const { data: imageData, error: imageError } =
+    await sbnfSupabase.storage
+      .from("artist-profiles")
+      .createSignedUrl(profile.avatar_path, 3600);
+
+  if (!imageError && imageData?.signedUrl) {
+    preview.src = imageData.signedUrl;
+    preview.style.display = "block";
+  }
+} else {
+  preview.style.display = "none";
+}
+
 }
 
 // SAVE ARTIST PROFILE
