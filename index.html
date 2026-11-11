@@ -393,6 +393,44 @@ Track the progress of your music submissions here.
   <p style="color:#ccc;">Your submitted releases will appear here.</p>
 </div>
 
+
+<hr style="border-color:#444;margin:25px 0;">
+
+<h3 style="color:#e2bd6c;">EDIT MY ARTIST PROFILE</h3>
+
+<label style="color:#e2bd6c;">Artist Display Name</label>
+<input id="profileDisplayName" type="text"
+  placeholder="Your professional artist name"
+  style="width:100%;padding:12px;margin:8px 0 15px;">
+
+<label style="color:#e2bd6c;">Artist Biography</label>
+<textarea id="profileBio"
+  placeholder="Tell fans about yourself and your music..."
+  style="width:100%;padding:12px;margin:8px 0 15px;min-height:100px;"></textarea>
+
+<label style="color:#e2bd6c;">Country</label>
+<input id="profileCountry" type="text"
+  value="Nigeria"
+  style="width:100%;padding:12px;margin:8px 0 15px;">
+
+<label style="color:#e2bd6c;">Music Genre</label>
+<input id="profileGenre" type="text"
+  placeholder="e.g. Afropop, Amapiano, Afrobeat"
+  style="width:100%;padding:12px;margin:8px 0 15px;">
+
+<label style="color:#e2bd6c;">Profile Picture</label>
+<input id="profilePicture" type="file"
+  accept="image/jpeg,image/png,image/webp"
+  style="width:100%;padding:12px;margin:8px 0 15px;color:white;">
+
+<button id="saveProfileBtn"
+  style="width:100%;padding:14px;background:#d6ad55;color:#111;border:0;border-radius:6px;font-weight:bold;">
+  SAVE MY PROFILE
+</button>
+
+<p id="profileMessage" style="color:#e2bd6c;"></p>
+
+
   </div>
 </section>
 <!-- END SBNF ARTIST DASHBOARD -->
@@ -975,6 +1013,125 @@ card.appendChild(reviewNote);
 
   }
 }
+
+
+// LOAD ARTIST PROFILE
+async function loadArtistProfile() {
+  const { data: userData } = await sbnfSupabase.auth.getUser();
+
+  if (!userData.user) return;
+
+  const userId = userData.user.id;
+
+  const { data: profile, error } = await sbnfSupabase
+    .from("artist_profiles")
+    .select("display_name, bio, country, genre, avatar_path")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    document.getElementById("profileMessage").textContent =
+      "Could not load profile: " + error.message;
+    return;
+  }
+
+  document.getElementById("profileDisplayName").value =
+    profile.display_name || "";
+
+  document.getElementById("profileBio").value =
+    profile.bio || "";
+
+  document.getElementById("profileCountry").value =
+    profile.country || "Nigeria";
+
+  document.getElementById("profileGenre").value =
+    profile.genre || "";
+}
+
+// SAVE ARTIST PROFILE
+document.getElementById("saveProfileBtn").addEventListener("click", async () => {
+  const message = document.getElementById("profileMessage");
+  const button = document.getElementById("saveProfileBtn");
+
+  button.disabled = true;
+  message.textContent = "Saving your profile...";
+
+  try {
+    const { data: userData, error: userError } =
+      await sbnfSupabase.auth.getUser();
+
+    if (userError || !userData.user) {
+      throw new Error("Please log in first.");
+    }
+
+    const userId = userData.user.id;
+
+    const displayName =
+      document.getElementById("profileDisplayName").value.trim();
+
+    const bio =
+      document.getElementById("profileBio").value.trim();
+
+    const country =
+      document.getElementById("profileCountry").value.trim();
+
+    const genre =
+      document.getElementById("profileGenre").value.trim();
+
+    const picture =
+      document.getElementById("profilePicture").files[0];
+
+    let avatarPath = null;
+
+    if (picture) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(picture.type)) {
+        throw new Error("Use a JPG, PNG or WEBP picture.");
+      }
+
+      if (picture.size > 5 * 1024 * 1024) {
+        throw new Error("Profile picture must not exceed 5MB.");
+      }
+
+      const extension = picture.name.split(".").pop().toLowerCase();
+      avatarPath = userId + "/" + Date.now() + "." + extension;
+
+      const { error: uploadError } = await sbnfSupabase.storage
+        .from("artist-profiles")
+        .upload(avatarPath, picture);
+
+      if (uploadError) throw uploadError;
+    }
+
+    const updates = {
+      display_name: displayName || null,
+      bio: bio || null,
+      country: country || "Nigeria",
+      genre: genre || null,
+      updated_at: new Date().toISOString()
+    };
+
+    if (avatarPath) {
+      updates.avatar_path = avatarPath;
+    }
+
+    const { error: saveError } = await sbnfSupabase
+      .from("artist_profiles")
+      .update(updates)
+      .eq("id", userId);
+
+    if (saveError) throw saveError;
+
+    message.textContent = "Your artist profile has been saved successfully!";
+
+    document.getElementById("profilePicture").value = "";
+
+  } catch (error) {
+    message.textContent = "Profile saving issue: " + error.message;
+  }
+
+  button.disabled = false;
+});
+
 </script>
 
 </body>
