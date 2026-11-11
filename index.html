@@ -577,6 +577,7 @@ message.textContent = "Welcome back! You are successfully signed in.";
 
 document.getElementById("artistDashboard").style.display = "block";
 await loadMyReleases();
+await loadArtistProfile();
 
 // CHECK ADMIN ACCESS
 const { data: roleData, error: roleError } = await sbnfSupabase
