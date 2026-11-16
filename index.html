@@ -1124,7 +1124,7 @@ document.getElementById("saveProfileBtn").addEventListener("click", async () => 
       document.getElementById("profileCountry").value.trim();
 
     const genre =
-      document.getElementById("profileGenre").value.trim();
+  document.getElementById("profileGenre").value.trim();
 
 const slug = document.getElementById("profileSlug").value
   .trim()
@@ -1167,14 +1167,14 @@ if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     }
 
     const updates = {
-      display_name: displayName || null,
-      bio: bio || null,
-      country: country || "Nigeria",
-      genre: genre || null,
-      updated_at: new Date().toISOString()
-public_slug: slug || null,
-is_public: isPublic,
-    };
+  display_name: displayName || null,
+  bio: bio || null,
+  country: country || "Nigeria",
+  genre: genre || null,
+  public_slug: slug || null,
+  is_public: isPublic,
+  updated_at: new Date().toISOString()
+};
 
     if (avatarPath) {
       updates.avatar_path = avatarPath;
