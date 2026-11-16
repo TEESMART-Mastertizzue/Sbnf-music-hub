@@ -1049,7 +1049,7 @@ async function loadArtistProfile() {
   const { data: profile, error } = await sbnfSupabase
     .from("artist_profiles")
 
-    ..select("display_name, bio, country, genre, avatar_path, public_slug, is_public")
+        .select("display_name, bio, country, genre, avatar_path, public_slug, is_public")
 
     .eq("id", userId)
     .single();
