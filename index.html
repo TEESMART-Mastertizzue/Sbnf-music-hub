@@ -1126,6 +1126,22 @@ document.getElementById("saveProfileBtn").addEventListener("click", async () => 
     const genre =
       document.getElementById("profileGenre").value.trim();
 
+const slug = document.getElementById("profileSlug").value
+  .trim()
+  .toLowerCase()
+  .replace(/\s+/g, "-");
+
+const isPublic =
+  document.getElementById("profilePublic").checked;
+
+if (isPublic && !slug) {
+  throw new Error("Choose a public profile username first.");
+}
+
+if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+  throw new Error("Username can only contain lowercase letters, numbers and hyphens.");
+}
+
     const picture =
       document.getElementById("profilePicture").files[0];
 
@@ -1156,6 +1172,8 @@ document.getElementById("saveProfileBtn").addEventListener("click", async () => 
       country: country || "Nigeria",
       genre: genre || null,
       updated_at: new Date().toISOString()
+public_slug: slug || null,
+is_public: isPublic,
     };
 
     if (avatarPath) {
