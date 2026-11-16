@@ -1254,6 +1254,7 @@ async function loadPublicArtistProfile() {
   const slug = params.get("artist");
 
   if (!slug) return;
+document.body.classList.add("public-profile");
 
   const page = document.getElementById("publicArtistPage");
   const { data: profile, error } = await sbnfSupabase
