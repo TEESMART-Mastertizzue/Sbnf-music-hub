@@ -1272,6 +1272,19 @@ document.body.classList.add("public-profile");
     return;
   }
 
+const publicPicture = document.getElementById("publicArtistPicture");
+
+if (profile.avatar_path) {
+  const { data: imageData } = sbnfSupabase.storage
+    .from("public-artist-images")
+    .getPublicUrl(profile.avatar_path);
+
+  publicPicture.src = imageData.publicUrl;
+  publicPicture.style.display = "block";
+} else {
+  publicPicture.style.display = "none";
+}
+
   document.getElementById("publicArtistName").textContent =
     profile.display_name || profile.stage_name || "Artist";
 
