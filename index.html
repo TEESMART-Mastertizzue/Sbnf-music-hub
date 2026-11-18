@@ -1259,7 +1259,7 @@ document.body.classList.add("public-profile");
   const page = document.getElementById("publicArtistPage");
   const { data: profile, error } = await sbnfSupabase
     .from("artist_profiles")
-    .select("display_name, stage_name, bio, country, genre")
+    .select("display_name, stage_name, bio, country, genre, avatar_path")
     .eq("public_slug", slug)
     .eq("is_public", true)
     .maybeSingle();
