@@ -1097,7 +1097,7 @@ async function loadArtistProfile() {
   const userId = userData.user.id;
 
   const { data: profile, error } = await sbnfSupabase
-    .from("artist_profiles")
+    .from("public-artist-images")
 
         .select("display_name, bio, country, genre, avatar_path, public_slug, is_public")
 
