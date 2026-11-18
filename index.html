@@ -1210,7 +1210,7 @@ if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
       avatarPath = userId + "/" + Date.now() + "." + extension;
 
       const { error: uploadError } = await sbnfSupabase.storage
-        .from("artist-profiles")
+        .from("public-artist-images")
         .upload(avatarPath, picture);
 
       if (uploadError) throw uploadError;
